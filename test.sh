@@ -22,7 +22,5 @@ export PYTHONPATH="$currentDir:$PYTHONPATH"
 # execute test.py
 for i in {0..9}
 do
-    if [[ $i -ne 6 ]] && [[ $i -ne 8 ]]; then
-        python3 ex0$i/test.py > results/ex0$i/result.txt
-    fi
+    python3 ex0$i/test.py > results/ex0$i/result.txt
 done
