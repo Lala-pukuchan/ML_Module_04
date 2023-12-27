@@ -53,6 +53,13 @@ class MyRidge(MyLinearRegression):
         # change theta0 to 0
         theta = np.insert(self.theta[1:], 0, 0)
 
+        print("x", x.shape)
+        print("error", error.shape)
+        print("x.T.dot(error)", x.T.dot(error).shape)
+        print("self.theta", self.theta.shape)
+        print("self.lambda_", self.lambda_)
+        print("------------------")
+
         return (1 / m) * (x.T.dot(error) + self.lambda_ * theta)
     
 
