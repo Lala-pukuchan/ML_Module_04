@@ -25,7 +25,7 @@ do
     if [[ $i -ne 7 ]]; then
         python3 ex0$i/test.py > results/ex0$i/result.txt
     elif [[ $i -eq 7 ]]; then
-        # python3 ex07/benchmark_train.py
+        python3 ex07/benchmark_train.py
         # python3 ex07/space_avocado.py
         continue
     fi
