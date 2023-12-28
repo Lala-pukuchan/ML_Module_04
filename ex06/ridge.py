@@ -1,67 +1,74 @@
 from ex06.mylinearregression import MyLinearRegression
 import numpy as np
 
+
 class MyRidge(MyLinearRegression):
     """
     Description:
     My personnal ridge regression class to fit like a boss.
     """
 
-    def __init__(self, thetas, alpha=0.001, max_iter=1000, lambda_=0.5):
-        super().__init__(thetas, alpha=alpha, max_iter=max_iter)
+    def __init__(self, theta, alpha=0.001, max_iter=1000, lambda_=0.5):
+        super().__init__(theta, alpha=alpha, max_iter=max_iter)
         self.lambda_ = lambda_
 
     def get_params_(self):
         return {
             "alpha": self.alpha,
             "max_iter": self.max_iter,
-            "thetas": self.thetas,
+            "theta": self.theta,
             "lambda_": self.lambda_,
         }
 
-    def set_params_(self, params):
-        for key, value in params.items():
-            setattr(self, key, value)
+    def set_params_(self, alpha=None, max_iter=None, theta=None, lambda_=None):
+        if alpha is not None:
+            self.alpha = alpha
+        if max_iter is not None:
+            self.max_iter = max_iter
+        if theta is not None:
+            self.theta = theta
+        if lambda_ is not None:
+            self.lambda_ = lambda_
+        print("set param:", self.lambda_, lambda_)
+
+    def loss_elem_(self, y, y_hat):
+        if y.shape != y_hat.shape:
+            return None
+        return (y_hat - y) ** 2
 
     def loss_(self, y, y_hat):
         if y.shape != y_hat.shape:
             return None
         m = y.shape[0]
         loss = np.sum((y_hat - y) ** 2)
-        penalty = self.lambda_ * np.sum(self.thetas[1:] ** 2)
+        penalty = self.lambda_ * np.sum(self.theta[1:] ** 2)
         return (1 / (2 * m)) * (loss + penalty)
-    
 
-    def gradient(self, x, y):
-        if not (
-            isinstance(x, np.ndarray)
-            and isinstance(y, np.ndarray)
-            and isinstance(self.theta, np.ndarray)
+    def gradient(self, y, x):
+        if (
+            not isinstance(x, np.ndarray)
+            or x.size == 0
+            or not isinstance(y, np.ndarray)
+            or y.size == 0
+            or not isinstance(self.theta, np.ndarray)
+            or self.theta.size == 0
+            or x.shape[0] != y.shape[0]
+            or (x.shape[1] + 1) != self.theta.shape[0]
+            or y.shape[1] != 1
+            or self.theta.shape[1] != 1
+            or not (isinstance(self.lambda_, int) or isinstance(self.lambda_, float))
         ):
             return None
-        if x.size == 0 or y.size == 0 or self.theta.size == 0:
-            return None
-        if x.shape[0] != y.shape[0] or x.shape[1] + 1 != self.theta.shape[0]:
-            return None
 
-        m = x.shape[0]
-        x = np.insert(x, 0, 1, axis=1)
+        # calculate hypothesis
+        x_dash = np.insert(x, 0, 1, axis=1)
+        h = np.dot(x_dash, self.theta)
 
-        y_hat = x.dot(self.theta)
-        error = y_hat - y
+        # calculate gradient descent
+        m = y.shape[0]
+        theta_dash = np.insert(self.theta[1:], 0, 0).reshape(-1, 1)
 
-        # change theta0 to 0
-        theta = np.insert(self.theta[1:], 0, 0)
-
-        print("x", x.shape)
-        print("error", error.shape)
-        print("x.T.dot(error)", x.T.dot(error).shape)
-        print("self.theta", self.theta.shape)
-        print("self.lambda_", self.lambda_)
-        print("------------------")
-
-        return (1 / m) * (x.T.dot(error) + self.lambda_ * theta)
-    
+        return (1 / m) * (np.dot(x_dash.T, (h - y)) + self.lambda_ * theta_dash)
 
     def fit_(self, x, y):
         if (
@@ -82,6 +89,46 @@ class MyRidge(MyLinearRegression):
             return None
 
         for _ in range(self.max_iter):
-            self.theta = self.theta - self.alpha * self.gradient(x, y)
+            self.theta = self.theta - self.alpha * self.gradient(y, x)
 
         return self.theta
+
+
+if __name__ == "__main__":
+    X = np.array(
+        [[1.0, 1.0, 2.0, 3.0], [5.0, 8.0, 13.0, 21.0], [34.0, 55.0, 89.0, 144.0]]
+    )
+    Y = np.array([[23.0], [48.0], [218.0]])
+    mylr = MyRidge(np.array([[1.0], [1.0], [1.0], [1.0], [1]]), lambda_=0.0)
+    # print("mylr.theta:", mylr.theta)
+
+    # Example 0:
+    y_hat = mylr.predict_(X)  # Output: array([[8.], [48.], [323.]])
+    print(y_hat)
+
+    # Example 1:
+    print(mylr.loss_elem_(Y, y_hat))  # Output: array([[225.], [0.], [11025.]])
+
+    # Example 2:
+    print(mylr.loss_(Y, y_hat))  # Output: 1875.0
+
+    # Example 3:
+    mylr.alpha = 1.6e-4
+    mylr.max_iter = 200000
+    mylr.fit_(X, Y)
+    # Output: array([[18.188..], [2.767..], [-0.374..], [1.392..], [0.017..]])
+    print(mylr.theta)
+
+    # Example 4:
+    # Output: array([[23.417..], [47.489..], [218.065...]])
+    y_hat = mylr.predict_(X)
+    print(y_hat)
+
+    # Example 5:
+    # Output: array([[0.174..], [0.260..], [0.004..]])
+    print(mylr.loss_elem_(Y, y_hat))
+
+    # Example 6:
+    print(mylr.loss_(Y, y_hat))  # Output: 0.0732..
+    mylr.set_params_(lambda_=2.0)
+    print(mylr.get_params_())
