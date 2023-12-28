@@ -51,16 +51,7 @@ from ex07.data_spliter import data_spliter
 # plt.savefig("ex07/figure-1.png")
 
 
-def evaluate_model(model, x_test_poly, y_test):
-    # Make predictions on the test data
-    y_pred = model.predict_(x_test_poly)
-
-    # Calculate the mean squared error
-    mse = np.mean((y_test - y_pred) ** 2)
-    return mse
-
-
-def benchmark_train(degrees):
+def benchmark_train():
     # load data
     data = pd.read_csv("ex07/space_avocado.csv")
     x = np.array(data[["weight", "prod_distance", "time_delivery"]])
@@ -85,6 +76,7 @@ def benchmark_train(degrees):
     variance = np.var(y_train)
 
     # loop with each degree
+    degrees = [1, 2, 3, 4]
     for degree in degrees:
         # add polynomial feature
         x_train_poly = add_polynomial_features(x_train_scaled, degree)
@@ -102,32 +94,7 @@ def benchmark_train(degrees):
         mse = lr.mse_(y_cv, lr.predict_(x_cv_poly))
         mse_values.append(mse / variance)
 
-    # Find the best degree with the minimum mean squared error
-    print(degrees, mse_values)
-    best_degree = degrees[np.argmin(mse_values)]
-    print("Best Degree:", best_degree)
-
-    # Train the best model based on the best degree using the combined training and cross-validation sets
-    X_train_cv_poly = add_polynomial_features(
-        np.vstack((x_train_scaled, x_cv_scaled)), best_degree
-    )
-    # Concatenate y_train and y_cv
-    y_train_cv = np.concatenate((y_train, y_cv))
-
-    x_test_poly = add_polynomial_features(x_test_scaled, best_degree)
-    num_features = X_train_cv_poly.shape[1] + 1
-    thetas = np.random.rand(num_features, 1)
-    best_model = MyRidge(thetas, alpha=0.1, max_iter=1000)
-    # Use y_train_cv instead of np.vstack((y_train, y_cv))
-    best_model.fit_(X_train_cv_poly, y_train_cv)
-
-    # Save the parameters of all the models into a file (models.csv)
-    models = {"degrees": degrees, "mse_values": mse_values}
-    models_df = pd.DataFrame(models)
-    models_df.to_csv("ex07/models.csv", index=False)
-    print("Data saved to models.csv file.")
-
-    return mse_values, best_model, x_test_poly, y_test
+    plot_evaluation_curve(degrees, mse_values)
 
 
 def plot_evaluation_curve(degrees, mse_values):
@@ -135,43 +102,33 @@ def plot_evaluation_curve(degrees, mse_values):
     plt.xlabel("Degree of Polynomial")
     plt.ylabel("Mean Squared Error")
     plt.title("Evaluation Curve")
-    plt.show()
+    plt.savefig("ex07/evaluation_curve.png")
 
 
-def plot_predictions(model, x_test_poly, y_test):
-    print(x_test_poly.shape, y_test.shape)
-    y_pred = model.predict_(x_test_poly)
+#def plot_predictions(model, x_test_poly, y_test):
+#    print(x_test_poly.shape, y_test.shape)
+#    y_pred = model.predict_(x_test_poly)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(x_test_poly[:, 1], x_test_poly[:, 2], y_test, c="b", label="True Price")
-    ax.scatter(
-        x_test_poly[:, 1], x_test_poly[:, 2], y_pred, c="r", label="Predicted Price"
-    )
-    ax.set_xlabel("Weight")
-    ax.set_ylabel("Production Distance")
-    ax.set_zlabel("Price")
-    ax.legend()
-    plt.title("True Price vs Predicted Price")
-    plt.show()
+#    fig = plt.figure()
+#    ax = fig.add_subplot(111, projection="3d")
+#    ax.scatter(x_test_poly[:, 1], x_test_poly[:, 2], y_test, c="b", label="True Price")
+#    ax.scatter(
+#        x_test_poly[:, 1], x_test_poly[:, 2], y_pred, c="r", label="Predicted Price"
+#    )
+#    ax.set_xlabel("Weight")
+#    ax.set_ylabel("Production Distance")
+#    ax.set_zlabel("Price")
+#    ax.legend()
+#    plt.title("True Price vs Predicted Price")
+#    plt.show()
 
-    print(
-        x_test_poly.shape,
-    )
-    print(
-        x_test_poly,
-    )
-
-
-degrees = [1, 2, 3, 4]
-
-mse_values, best_model, x_test_poly, y_test = benchmark_train(degrees)
-
-# Plot the evaluation curve
-plot_evaluation_curve(degrees, mse_values)
+#    print(
+#        x_test_poly.shape,
+#    )
+#    print(
+#        x_test_poly,
+#    )
 
 
-# load the saved
-
-# Plot the true price and predicted price using the best model
-plot_predictions(best_model, x_test_poly, y_test)
+if __name__ == "__main__":
+    benchmark_train()

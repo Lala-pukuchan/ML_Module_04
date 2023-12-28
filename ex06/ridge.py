@@ -8,7 +8,7 @@ class MyRidge(MyLinearRegression):
     My personnal ridge regression class to fit like a boss.
     """
 
-    def __init__(self, theta, alpha=0.001, max_iter=1000, lambda_=2):
+    def __init__(self, theta, alpha=0.01, max_iter=1000, lambda_=1):
         super().__init__(theta, alpha=alpha, max_iter=max_iter)
         self.lambda_ = lambda_
 
