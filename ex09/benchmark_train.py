@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from ex07.data_spliter import data_spliter
 from ex07.polynomial_model import add_polynomial_features
 from ex08.my_logistic_regression import MyLogisticRegression as MyRidge
@@ -8,8 +9,8 @@ from ex09.other_metrics import f1_score_
 
 def benchmark():
     # set degree and lambda
-    degree = 1
-    lambda_values = np.arange(0, 0.1, 0.2)
+    degree = 3
+    lambda_values = np.arange(0, 1.1, 0.2)
 
     # load data
     solar_system_census = pd.read_csv("ex09/solar_system_census.csv")
@@ -43,11 +44,13 @@ def benchmark():
     # initial mse
     smallest_mse = float("inf")
 
+    f1_scores = []
+
     # loop with each lambda
     for l in lambda_values:
         # initiate model
         model = MyRidge(
-            theta=np.zeros((x_train.shape[1] + 1, 1)),
+            theta=np.zeros((x_train_poly.shape[1] + 1, 1)),
             alpha=1e-2,
             max_iter=10000,
             lambda_=l,
@@ -73,16 +76,14 @@ def benchmark():
         )
 
         # Store the class which has the highest probabilities
-        y_cv_hat = np.argmax(all_probabilities, axis=1).flatten()
+        y_cv_hat = np.argmax(all_probabilities, axis=1)
 
         # change y_cv from float to int
         y_cv = y_cv.astype(int).flatten()
 
         # get f1 score
         f1 = f1_score_(y_cv, y_cv_hat)
-
-        print("len:", len(y_cv_hat))
-        print("len:", len(y_cv))
+        f1_scores.append(f1)
 
         # print f1 score
         print(
@@ -93,6 +94,14 @@ def benchmark():
             "Accuracy",
             np.sum(y_cv == y_cv_hat) / len(y_cv),
         )
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(lambda_values, f1_scores, marker="o")
+    plt.xlabel("Lambda")
+    plt.ylabel("F1 Score")
+    plt.title("F1 Score vs Lambda")
+    plt.grid(True)
+    plt.show()
 
 
 def main():
