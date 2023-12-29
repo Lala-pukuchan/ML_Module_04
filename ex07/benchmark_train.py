@@ -35,7 +35,6 @@ def benchmark_train():
     degrees = [1, 2, 3, 4]
     smallest_mse = float("inf")
     for degree in degrees:
-
         # storage for each degree
         models_performance[degree] = {}
 
@@ -59,7 +58,7 @@ def benchmark_train():
 
             # print
             print(f"degree: {degree}, lambda: {l}, mse: {mse}")
-            if (mse < smallest_mse):
+            if mse < smallest_mse:
                 smallest_mse = mse
                 best_degree = degree
                 best_lambda = l
@@ -74,10 +73,11 @@ def benchmark_train():
 
     # Print the best model
     print(f"Best model: degree {best_degree}, lambda {best_lambda}, mse {smallest_mse}")
-    
+
     # Save the models to a file
     with open("ex07/models.pkl", "wb") as file:
         pickle.dump(models_performance, file)
+
 
 def plot_evaluation_curve():
     # Open the file and load the data
