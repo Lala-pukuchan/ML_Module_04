@@ -22,11 +22,13 @@ export PYTHONPATH="$currentDir:$PYTHONPATH"
 # execute test.py
 for i in {0..9}
 do
-    if [[ $i -ne 7 ]]; then
+    if [[ $i -ne 7 ]] && [[ $i -ne 9 ]]; then
         python3 ex0$i/test.py > results/ex0$i/result.txt
     elif [[ $i -eq 7 ]]; then
-        #python3 ex07/benchmark_train.py
+        # python3 ex07/benchmark_train.py
         python3 ex07/space_avocado.py > results/ex0$i/result.txt
-        continue
+    elif [[ $i -eq 9 ]]; then
+        python3 ex09/benchmark_train.py
+        # python3 ex09/space_avocado.py > results/ex0$i/result.txt
     fi
 done
