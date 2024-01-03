@@ -48,7 +48,7 @@ def benchmark_train():
         for l in lambda_values:
             # initiate ridge regression class
             thetas = np.random.rand(x_train_poly.shape[1] + 1, 1)
-            model = MyRidge(thetas, alpha=0.1, max_iter=1000, lambda_=l)
+            model = MyRidge(thetas, alpha=0.1, max_iter=200_000, lambda_=l)
 
             # train model
             model.fit_(x_train_poly, y_train)
