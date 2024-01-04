@@ -74,6 +74,7 @@ def f1_score_(y, y_hat, pos_label=1):
         return None
     precision = precision_score_(y, y_hat, pos_label)
     recall = recall_score_(y, y_hat, pos_label)
+
     if precision + recall == 0:
         return 0  # Avoid division by zero
     return 2 * (precision * recall) / (precision + recall)

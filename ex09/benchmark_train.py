@@ -5,25 +5,29 @@ from ex07.data_spliter import data_spliter
 from ex07.polynomial_model import add_polynomial_features
 from ex08.my_logistic_regression import MyLogisticRegression as MyRidge
 from ex09.other_metrics import f1_score_
+import pickle
 
 
 def benchmark():
+    # Store performance of models
+    models = {}
+
     # set degree and lambda
     degree = 3
     lambda_values = np.arange(0, 1.1, 0.2)
 
     # load data
-    solar_system_census = pd.read_csv("ex09/solar_system_census.csv")
+    solar_system_census = pd.read_csv("ex09/resources/solar_system_census.csv")
     x = np.array(solar_system_census[["weight", "height", "bone_density"]])
-    solar_system_census_planets = pd.read_csv("ex09/solar_system_census_planets.csv")
+    solar_system_census_planets = pd.read_csv(
+        "ex09/resources/solar_system_census_planets.csv"
+    )
     y = np.array(solar_system_census_planets[["Origin"]])
 
     # split data
+    np.random.seed(42)
     x_train_val, x_test, y_train_val, y_test = data_spliter(x, y, 0.85)
     x_train, x_cv, y_train, y_cv = data_spliter(x_train_val, y_train_val, 0.85)
-
-    # storage for model
-    models_performance = {}
 
     # Normalization
     min = x_train.min(axis=0)
@@ -38,21 +42,13 @@ def benchmark():
     x_cv_poly = add_polynomial_features(x_cv_normalized, degree)
     x_test_poly = add_polynomial_features(x_test_normalized, degree)
 
-    # variance of y
-    variance = np.var(y_train)
-
-    # initial mse
-    smallest_mse = float("inf")
-
-    f1_scores = []
-
     # loop with each lambda
     for l in lambda_values:
         # initiate model
         model = MyRidge(
             theta=np.zeros((x_train_poly.shape[1] + 1, 1)),
             alpha=1e-2,
-            max_iter=10000,
+            max_iter=100_000,
             lambda_=l,
         )
 
@@ -83,25 +79,25 @@ def benchmark():
 
         # get f1 score
         f1 = f1_score_(y_cv, y_cv_hat)
-        f1_scores.append(f1)
 
         # print f1 score
         print(
-            "lambda: ",
-            l,
-            "f1 score: ",
-            f1,
-            "Accuracy",
-            np.sum(y_cv == y_cv_hat) / len(y_cv),
+            f"lambda: {l:.2f}, f1 score: {f1:.2f}, Accuracy: {np.sum(y_cv == y_cv_hat) / len(y_cv):.2f}"
         )
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(lambda_values, f1_scores, marker="o")
-    plt.xlabel("Lambda")
-    plt.ylabel("F1 Score")
-    plt.title("F1 Score vs Lambda")
-    plt.grid(True)
-    plt.show()
+        # Store model and performance
+        models[l] = {
+            "model": model,
+            "f1": f1,
+            "x_train_poly": x_train_poly,
+            "y_train": y_train,
+            "x_test_poly": x_test_poly,
+            "y_test": y_test,
+        }
+
+    # Save the models to a file
+    with open("ex09/models.pkl", "wb") as file:
+        pickle.dump(models, file)
 
 
 def main():
